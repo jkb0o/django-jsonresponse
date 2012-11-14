@@ -2,3 +2,7 @@ django_jsonresponse.egg-info/*
 *.sw[pwo]
 .ropeproject
 *.pyc
+dist/*
+upload/*
+build/*
+README.txt

@@ -1,10 +1,13 @@
 from setuptools import setup, find_packages
+from subprocess import check_call
 
-DESCRIPTION = 'Simple wrap django views to render json '
 try:
-    LONG_DESCRIPTION = open('README.md').read()
+    check_call(['pandoc', '--to=rst', '-o', 'README.txt', 'README.md'])
+    LONG_DESCRIPTION = open('README.txt').read()
 except:
     LONG_DESCRIPTION = None
+
+DESCRIPTION = 'Simple wrap django views to render json '
 
 setup(
     name='django-jsonresponse',
@@ -12,7 +15,7 @@ setup(
     packages=find_packages(),
     author='Yasha Borevich',
     author_email='j.borevich@gmail.com',
-    url='http://github.com/jjay/django-staticfinders',
+    url='http://github.com/jjay/django-jsonresponse',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     platforms='any',
