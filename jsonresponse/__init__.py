@@ -3,7 +3,10 @@ import functools
 from collections import Iterable
 
 from django.http import HttpResponse
+from django.conf import settings
 
+DEFAULT_DEBUG = getattr(settings, 'JSONRESPONSE_DEFAULT_DEBUG', False)
+CALLBACK_NAME = getattr(settings, 'JSONRESPONSE_CALLBACK_NAME', 'callback')
 
 class to_json(object):
     """
@@ -134,7 +137,7 @@ class to_json(object):
     });
 
     You can override the name of callback method using 
-    JSON_RESPONSE_CBNAME option or query arg callback=another_callback
+    JSONRESPONSE_CALLBACK_NAME option or query arg callback=another_callback
     
     >>> resp = users(requests.get('users',
     ...     { 'debug':1, 'format': 'jsonp', 'callback': 'my_callback' }))
@@ -217,10 +220,11 @@ class to_json(object):
         }
 
     def render_data(self, req, data, status=200):
-        debug = req.GET.get('debug', 'false').lower() in ('true', 't', '1', 'on')
+        debug = DEFAULT_DEBUG
+        debug = debug or req.GET.get('debug', 'false').lower() in ('true', 't', '1', 'on')
         debug = debug or req.GET.get('decode', '0').lower() in ('true', 't', '1', 'on')
         format = req.GET.get('format', 'json')
-        jsonp_cb = req.GET.get('callback', 'callback')
+        jsonp_cb = req.GET.get('callback', CALLBACK_NAME)
         content_type = "application/json"
         
         kwargs = {}
