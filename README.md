@@ -22,7 +22,7 @@ def hello(request):
     
 Result can be wraped in some api manier. 
 Note, you can pass debug=1 to pretty print response. 
-Use JSONRESPONCE_DEBUG_DEFAULT=True to enable by default. 
+Use JSONRESPONSE_DEBUG_DEFAULT=True to enable by default. 
 
 ```python
 @to_json('api')
@@ -115,7 +115,7 @@ It is easy to use jsonp, just pass format=jsonp
     });
 
 You can override the name of callback method using 
-JSON_RESPONSE_CBNAME option or query arg callback=another_callback
+JSONRESPONSE_CBNAME option or query arg callback=another_callback
     
     GET /users/?format=jsonp&callback=my_callback    
     my_callback({
