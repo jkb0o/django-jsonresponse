@@ -191,7 +191,7 @@ class to_json(object):
         return wrapper
     
     def obj_to_response(self, req, obj):
-        if self.serializer_type == 'objects' and obj:
+        if self.serializer_type == 'objects':
             if isinstance(obj, Iterable):
                 obj = [o.serialize(req) if obj else None for o in obj]
             else:
