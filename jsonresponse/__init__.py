@@ -194,8 +194,10 @@ class to_json(object):
         if self.serializer_type == 'objects':
             if isinstance(obj, Iterable):
                 obj = [o.serialize(req) if obj else None for o in obj]
-            else:
+            elif obj:
                 obj = obj.serialize(req)
+            else:
+                obj = None
         
         return { "err": 0, "data": obj }
 
