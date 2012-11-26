@@ -11,7 +11,7 @@ DESCRIPTION = 'Simple wrap django views to render json '
 
 setup(
     name='django-jsonresponse',
-    version='0.3',
+    version='0.4',
     packages=find_packages(),
     author='Yasha Borevich',
     author_email='j.borevich@gmail.com',

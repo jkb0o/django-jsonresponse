@@ -168,6 +168,41 @@ class to_json(object):
     Traceback (most recent call last):
     Exception: Wooot!??
 
+    You can wraps both methods and functions
+
+    >>> class View(object):
+    ...     @to_json('plain')
+    ...     def render(self, request):
+    ...         return dict(data='ok')
+    ...     @to_json('api')
+    ...     def render_api(self, request):
+    ...         return dict(data='ok')
+    
+
+    >>> view = View()
+    >>> resp = view.render(requests.get('/render'))
+    >>> print resp.status_code
+    200
+    >>> print resp.content # doctest: +NORMALIZE_WHITESPACE
+    {"data": "ok"}
+    
+    Try it one more
+    
+    >>> resp = view.render(requests.get('/render'))
+    >>> print resp.status_code
+    200
+    >>> print resp.content # doctest: +NORMALIZE_WHITESPACE
+    {"data": "ok"}
+    
+    Try it one more with api
+    
+    >>> resp = view.render_api(requests.get('/render'))
+    >>> print resp.status_code
+    200
+    >>> print resp.content # doctest: +NORMALIZE_WHITESPACE
+    {"data": {"data": "ok"}, "err": 0}
+
+
     """
     def __init__(self, serializer_type):
         """
@@ -177,16 +212,32 @@ class to_json(object):
             * plain - just serialize result of function, do not wrap response and do not handle exceptions
         """
         self.serializer_type = serializer_type
+        self.method = None
 
     def __call__(self, f):
-        if self.serializer_type == 'plain': 
-            @functools.wraps(f)
-            def wrapper(*args, **kwargs):
-                return self.plain(f, *args, **kwargs)
-        else:
-            @functools.wraps(f)
-            def wrapper(*args, **kwargs):
-                return self.api(f, *args, **kwargs)
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            if self.method:
+                return self.method(f, *args, **kwargs)
+
+            if not args:
+                if self.serializer_type == 'plain':
+                    self.method = self.plain_func
+                else:
+                    self.method = self.api_func
+
+            if getattr(getattr(args[0], f.__name__, None), "im_self", False):
+                if self.serializer_type == 'plain':
+                    self.method = self.plain_method
+                else:
+                    self.method = self.api_method
+            else:
+                if self.serializer_type == 'plain':
+                    self.method = self.plain_func
+                else:
+                    self.method = self.api_func
+
+            return self.method(f, *args, **kwargs)
 
         return wrapper
     
@@ -243,9 +294,15 @@ class to_json(object):
         return HttpResponse(plain, content_type="%s; charset=UTF-8" % content_type, status=status)
         
 
+    def api_func(self, f, *args, **kwargs):
+        return self.api(f, args[0], *args, **kwargs)
+
+    def api_method(self, f, *args, **kwargs):
+        return self.api(f, args[1], *args, **kwargs)
+
     def api(self, f, req, *args, **kwargs):
         try:
-            resp = f(req, *args, **kwargs)
+            resp = f(*args, **kwargs)
             data = self.obj_to_response(req, resp)
             status = 200
         except Exception, e:
@@ -256,9 +313,13 @@ class to_json(object):
 
         return self.render_data(req, data, status)
 
-    def plain(self, f, req, *args, **kwargs):
-        data = f(req, *args, **kwargs)
-        return self.render_data(req, data)
+    def plain_method(self, f, *args, **kwargs):
+        data = f(*args, **kwargs)
+        return self.render_data(args[1], data)
+
+    def plain_func(self, f, *args, **kwargs):
+        data = f(*args, **kwargs)
+        return self.render_data(args[0], data)
 
 if __name__ == '__main__':
     import doctest
