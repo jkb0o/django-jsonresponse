@@ -4,6 +4,7 @@ from collections import Iterable
 
 from django.http import HttpResponse
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 DEFAULT_DEBUG = getattr(settings, 'JSONRESPONSE_DEFAULT_DEBUG', False)
 CALLBACK_NAME = getattr(settings, 'JSONRESPONSE_CALLBACK_NAME', 'callback')
@@ -60,6 +61,23 @@ class to_json(object):
         "data": null,
         "err": 1
     }
+
+    >>> from django.core.exceptions import ObjectDoesNotExist
+    >>> @to_json('api')
+    ... def error_404(request):
+    ...     raise ObjectDoesNotExist('Not found')
+
+    >>> resp = error_404(requests.get('/error', {'debug': 1}))
+    >>> print resp.status_code
+    404
+    >>> print resp.content # doctest: +NORMALIZE_WHITESPACE
+    {
+        "err_class": "django.core.exceptions.ObjectDoesNotExist",
+        "err_desc": "Not found",
+        "data": null,
+        "err": 1
+    }
+
 
     You can serialize not only pure python data types.
     Implement `serialize` method on toplevel object or 
@@ -202,7 +220,6 @@ class to_json(object):
     >>> print resp.content # doctest: +NORMALIZE_WHITESPACE
     {"data": {"data": "ok"}, "err": 0}
 
-
     """
     def __init__(self, serializer_type):
         """
@@ -305,11 +322,11 @@ class to_json(object):
             resp = f(*args, **kwargs)
             data = self.obj_to_response(req, resp)
             status = 200
-        except Exception, e:
+        except Exception as e:
             if int(req.GET.get('raise', 0)):
                 raise
             data = self.err_to_response(e)
-            status = 500
+            status = 404 if isinstance(e, ObjectDoesNotExist) else 500
 
         return self.render_data(req, data, status)
 
