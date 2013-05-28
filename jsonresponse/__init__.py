@@ -320,6 +320,9 @@ class to_json(object):
     def api(self, f, req, *args, **kwargs):
         try:
             resp = f(*args, **kwargs)
+            if isinstance(resp, HttpResponse):
+                return resp
+
             data = self.obj_to_response(req, resp)
             status = 200
         except Exception as e:
@@ -332,10 +335,16 @@ class to_json(object):
 
     def plain_method(self, f, *args, **kwargs):
         data = f(*args, **kwargs)
+        if isinstance(data, HttpResponse):
+            return data
+
         return self.render_data(args[1], data)
 
     def plain_func(self, f, *args, **kwargs):
         data = f(*args, **kwargs)
+        if isinstance(data, HttpResponse):
+            return data
+
         return self.render_data(args[0], data)
 
 if __name__ == '__main__':
