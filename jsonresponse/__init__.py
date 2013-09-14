@@ -221,7 +221,7 @@ class to_json(object):
     {"data": {"data": "ok"}, "err": 0}
 
     """
-    def __init__(self, serializer_type):
+    def __init__(self, serializer_type, error_code=500):
         """
         serializer_types:
             * api - serialize buildin objects (dict, list, etc) in strict api
@@ -230,6 +230,7 @@ class to_json(object):
         """
         self.serializer_type = serializer_type
         self.method = None
+        self.error_code=500
 
     def __call__(self, f):
         @functools.wraps(f)
@@ -329,7 +330,7 @@ class to_json(object):
             if int(req.GET.get('raise', 0)):
                 raise
             data = self.err_to_response(e)
-            status = 404 if isinstance(e, ObjectDoesNotExist) else 500
+            status = 404 if isinstance(e, ObjectDoesNotExist) else self.error_code
 
         return self.render_data(req, data, status)
 
