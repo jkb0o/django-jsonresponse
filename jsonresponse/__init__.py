@@ -230,7 +230,7 @@ class to_json(object):
         """
         self.serializer_type = serializer_type
         self.method = None
-        self.error_code=err_code
+        self.error_code=error_code
 
     def __call__(self, f):
         @functools.wraps(f)
