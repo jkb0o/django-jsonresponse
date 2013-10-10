@@ -220,8 +220,20 @@ class to_json(object):
     >>> print resp.content # doctest: +NORMALIZE_WHITESPACE
     {"data": {"data": "ok"}, "err": 0}
 
+
+    You can pass custom kwargs to json.dumps,
+    just give them to constructor
+
+    >>> @to_json('plain', separators=(',  ', ':  '))
+    ... def custom_kwargs(request):
+    ...    return ['a', { 'b': 1 }]
+    >>> resp = custom_kwargs(requests.get('/render'))
+    >>> print resp.status_code
+    200
+    >>> print resp.content
+    ["a",  {"b":  1}]
     """
-    def __init__(self, serializer_type, error_code=500):
+    def __init__(self, serializer_type, error_code=500, **kwargs):
         """
         serializer_types:
             * api - serialize buildin objects (dict, list, etc) in strict api
@@ -231,6 +243,7 @@ class to_json(object):
         self.serializer_type = serializer_type
         self.method = None
         self.error_code=error_code
+        self.kwargs = kwargs
 
     def __call__(self, f):
         @functools.wraps(f)
@@ -298,7 +311,7 @@ class to_json(object):
         jsonp_cb = req.GET.get('callback', CALLBACK_NAME)
         content_type = "application/json"
         
-        kwargs = {}
+        kwargs = dict(self.kwargs)
         if debug:
             kwargs["indent"] = 4
             kwargs["ensure_ascii"] = False

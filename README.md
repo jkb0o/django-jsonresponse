@@ -61,6 +61,17 @@ instead of passing info to json response
     Traceback (most recent call last):
     Exception: Wooot!??
 
+You can pass custom kwargs to json.dumps,
+just give them to constructor:
+
+```python
+@to_json('plain', separators=(',', ':'))
+def custom_kwargs(request):
+   return ['a', { 'b': 1 }]
+```
+
+    GET /
+    ["a",{"b":1}]
 
 You can serialize not only pure python data types.
 Implement `serialize` method on toplevel object or 
