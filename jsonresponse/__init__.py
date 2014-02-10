@@ -1,10 +1,13 @@
 import json
 import functools
+import logging
 from collections import Iterable
 
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+
+logger = logging.getLogger('django.request')
 
 DEFAULT_DEBUG = getattr(settings, 'JSONRESPONSE_DEFAULT_DEBUG', False)
 CALLBACK_NAME = getattr(settings, 'JSONRESPONSE_CALLBACK_NAME', 'callback')
@@ -340,8 +343,12 @@ class to_json(object):
             data = self.obj_to_response(req, resp)
             status = 200
         except Exception as e:
+            logger.exception("Error occurrid while processing reuest [{0}] {1}".format(
+                req.method, req.path))
+
             if int(req.GET.get('raise', 0)):
                 raise
+
             data = self.err_to_response(e)
             status = 404 if isinstance(e, ObjectDoesNotExist) else self.error_code
 
