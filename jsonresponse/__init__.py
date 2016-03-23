@@ -343,7 +343,7 @@ class to_json(object):
             data = self.obj_to_response(req, resp)
             status = 200
         except Exception as e:
-            logger.exception("Error occurrid while processing reuest [{0}] {1}".format(
+            logger.exception("Error occurred while processing request [{0}] {1}".format(
                 req.method, req.path))
 
             if int(req.GET.get('raise', 0)):
